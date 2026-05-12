@@ -26,11 +26,35 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
-      - name: Build wheel
+      - name: Build wheel with stubs
         uses: PyO3/maturin-action@v1
         with:
           command: build
-          args: --release --out dist
+          args: --release --out dist --generate-stubs
+      - name: Check stubs are up to date
+        run: |
+          # Extract the wheel and find the generated .pyi
+          STUB_DIR=$(mktemp -d)
+          pip install wheel > /dev/null 2>&1
+          python -m wheel unpack dist/*.whl -d "$STUB_DIR"
+          GENERATED=$(find "$STUB_DIR" -name '__init__.pyi' -path '*/compose_spec/*')
+          if [ -z "$GENERATED" ]; then
+            echo "ERROR: No __init__.pyi found in wheel"
+            exit 1
+          fi
+          # Normalize: the committed stub uses `Any` instead of `Any | None`
+          # for get_service/remove_service to avoid false OptionalSubscript errors
+          sed -i 's/-> Any | None/-> Any/g; s/-> Any |None/-> Any/g' "$GENERATED"
+          echo "Generated stub (normalized):"
+          cat "$GENERATED"
+          echo ""
+          echo "Comparing with committed stub..."
+          if ! diff -u compose_spec/__init__.pyi "$GENERATED"; then
+            echo ""
+            echo "::error::Stubs are out of date. Run 'maturin develop --generate-stubs --uv' and copy the generated __init__.pyi to compose_spec/__init__.pyi"
+            exit 1
+          fi
+          echo "Stubs are up to date ✓"
       - name: Install wheel and pytest
         run: pip install dist/*.whl pytest
       - name: Run tests

@@ -9,7 +9,7 @@ from compose_spec import PyCompose, PyOptions, parse_duration, format_duration
 
 # ── 1. Parse a Compose file from YAML ────────────
 
-yaml = """
+YAML = """
 services:
   web:
     image: nginx:latest
@@ -29,7 +29,7 @@ networks:
     driver: bridge
 """
 
-c = PyCompose.from_yaml(yaml)
+c = PyCompose.from_yaml(YAML)
 print(f"Parsed: {c}")
 
 
@@ -103,7 +103,7 @@ print("Validation passed")
 
 # ── 6. YAML merge keys (<<) with PyOptions ───────
 
-yaml_with_merge = """
+YAML_WITH_MERGE = """
 services:
   base:
     environment: &defaults
@@ -116,8 +116,9 @@ services:
 """
 
 opts = PyOptions(apply_merge=True)
-c4 = opts.from_yaml(yaml_with_merge)
-app_env = c4.get_service("app")["environment"]
+c4 = opts.from_yaml(YAML_WITH_MERGE)
+svc = c4.get_service("app")
+app_env = svc["environment"]
 print(f"Merged environment: {app_env}")
 
 

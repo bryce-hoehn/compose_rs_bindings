@@ -24,7 +24,7 @@ fn from_py_obj<T: serde::de::DeserializeOwned>(obj: Bound<'_, PyAny>) -> PyResul
 
 #[pyclass(skip_from_py_object)]
 #[derive(Clone)]
-struct PyCompose {
+pub struct PyCompose {
     inner: Compose,
 }
 
@@ -253,7 +253,7 @@ impl PyCompose {
 }
 
 #[pyclass(skip_from_py_object)]
-struct PyOptions {
+pub struct PyOptions {
     apply_merge_val: bool,
 }
 
@@ -284,23 +284,20 @@ impl PyOptions {
 }
 
 #[pyfunction]
-fn parse_duration(s: &str) -> PyResult<f64> {
+pub fn parse_duration(s: &str) -> PyResult<f64> {
     compose_spec_crate::duration::parse(s)
         .map(|d| d.as_secs_f64())
         .map_err(to_py_err)
 }
 
 #[pyfunction]
-fn format_duration(secs: f64) -> PyResult<String> {
+pub fn format_duration(secs: f64) -> PyResult<String> {
     let dur = Duration::try_from_secs_f64(secs).map_err(to_py_err)?;
     Ok(compose_spec_crate::duration::to_string(dur))
 }
 
 #[pymodule]
-fn compose_spec(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<PyCompose>()?;
-    m.add_class::<PyOptions>()?;
-    m.add_function(wrap_pyfunction!(parse_duration, m)?)?;
-    m.add_function(wrap_pyfunction!(format_duration, m)?)?;
-    Ok(())
+pub mod compose_spec {
+    #[pymodule_export]
+    pub use super::{PyCompose, PyOptions, parse_duration, format_duration};
 }
