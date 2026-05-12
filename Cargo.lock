@@ -3,17 +3,6 @@
 version = 4
 
 [[package]]
-name = "compose_rs_bindings"
-version = "0.1.0"
-dependencies = [
- "compose_spec",
- "pyo3",
- "serde",
- "serde_json",
- "serde_yaml",
-]
-
-[[package]]
 name = "compose_spec"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -27,6 +16,17 @@ dependencies = [
  "serde_yaml",
  "thiserror",
  "url",
+]
+
+[[package]]
+name = "compose_spec_bindings"
+version = "0.1.0"
+dependencies = [
+ "compose_spec",
+ "pyo3",
+ "serde",
+ "serde_json",
+ "serde_yaml",
 ]
 
 [[package]]

@@ -1,8 +1,14 @@
-# compose_rs_bindings
+# compose-spec
 
 Python bindings for the [compose_spec](https://docs.rs/compose_spec/latest/compose_spec/) Rust library — a fully validated, spec-compliant Docker Compose file parser and serializer.
 
 ## Installation
+
+```bash
+pip install compose-spec
+```
+
+For development:
 
 ```bash
 pip install maturin
@@ -14,7 +20,7 @@ Requires Rust toolchain (`rustup`) and Python >= 3.8.
 ## Quick Start
 
 ```python
-from compose_rs_bindings import PyCompose
+from compose_spec import PyCompose
 
 yaml = """
 services:
@@ -145,7 +151,7 @@ removed = c.remove_service("redis")
 Options builder for controlling YAML parsing behavior.
 
 ```python
-from compose_rs_bindings import PyOptions
+from compose_spec import PyOptions
 
 opts = PyOptions(apply_merge=True)
 # or:
@@ -199,15 +205,14 @@ c = opts.from_yaml(yaml)
 Parse a Compose-format duration string into seconds.
 
 ```python
-from compose_rs_bindings import parse_duration
+from compose_spec import parse_duration
 
 parse_duration("1m30s")   # 90.0
 parse_duration("2h")      # 7200.0
 parse_duration("500ms")   # 0.5
-parse_duration("1d")      # 86400.0
 ```
 
-**Supported units:** `ns`, `us`, `ms`, `s`, `m`, `h`, `d`
+**Supported units:** `ns`, `us`, `ms`, `s`, `m`, `h`
 
 Raises `ValueError` for invalid format.
 
@@ -218,7 +223,7 @@ Raises `ValueError` for invalid format.
 Format a number of seconds as a Compose duration string.
 
 ```python
-from compose_rs_bindings import format_duration
+from compose_spec import format_duration
 
 format_duration(90.0)    # "1m30s"
 format_duration(7200.0)  # "2h"

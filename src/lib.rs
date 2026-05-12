@@ -1,4 +1,4 @@
-use compose_spec::{Compose, Identifier, Options};
+use compose_spec_crate::{Compose, Identifier, Options};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
@@ -260,10 +260,9 @@ struct PyOptions {
 #[pymethods]
 impl PyOptions {
     #[new]
-    fn new(apply_merge: Option<bool>) -> Self {
-        Self {
-            apply_merge_val: apply_merge.unwrap_or(false),
-        }
+    #[pyo3(signature = (apply_merge=false))]
+    fn new(apply_merge: bool) -> Self {
+        Self { apply_merge_val: apply_merge }
     }
 
     #[getter]
@@ -286,7 +285,7 @@ impl PyOptions {
 
 #[pyfunction]
 fn parse_duration(s: &str) -> PyResult<f64> {
-    compose_spec::duration::parse(s)
+    compose_spec_crate::duration::parse(s)
         .map(|d| d.as_secs_f64())
         .map_err(to_py_err)
 }
@@ -294,11 +293,11 @@ fn parse_duration(s: &str) -> PyResult<f64> {
 #[pyfunction]
 fn format_duration(secs: f64) -> PyResult<String> {
     let dur = Duration::try_from_secs_f64(secs).map_err(to_py_err)?;
-    Ok(compose_spec::duration::to_string(dur))
+    Ok(compose_spec_crate::duration::to_string(dur))
 }
 
 #[pymodule]
-fn compose_rs_bindings(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn compose_spec(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyCompose>()?;
     m.add_class::<PyOptions>()?;
     m.add_function(wrap_pyfunction!(parse_duration, m)?)?;

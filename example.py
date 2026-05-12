@@ -4,7 +4,7 @@ Examples demonstrating the compose_rs_bindings Python API.
 Install: pip install .
 Build:   maturin develop
 """
-from compose_rs_bindings import PyCompose, PyOptions, parse_duration, format_duration
+from compose_spec import PyCompose, PyOptions, parse_duration, format_duration
 
 
 # ── 1. Parse a Compose file from YAML ────────────

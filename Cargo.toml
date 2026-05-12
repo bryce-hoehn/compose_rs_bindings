@@ -1,5 +1,5 @@
 [package]
-name = "compose_rs_bindings"
+name = "compose_spec_bindings"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
@@ -7,12 +7,12 @@ description = "Python bindings for compose_spec"
 license = "GPL-3.0-or-later"
 
 [lib]
-name = "compose_rs_bindings"
+name = "compose_spec"
 crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { version = "0.28.2", features = ["extension-module"] }
-compose_spec = { version = "^0.3", default-features = false }
+compose_spec_crate = { version = "^0.3", default-features = false, package = "compose_spec" }
 serde = "1.0"
 serde_json = "1.0"
 serde_yaml = "0.9"
