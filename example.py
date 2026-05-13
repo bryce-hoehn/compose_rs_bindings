@@ -1,10 +1,11 @@
 """
-Examples demonstrating the compose_rs_bindings Python API.
+Examples demonstrating the compose_spec Python API.
 
 Install: pip install .
 Build:   maturin develop
 """
 from compose_spec import PyCompose, PyOptions, parse_duration, format_duration
+from compose_spec.models import ComposeSpecification, Service
 
 
 # ── 1. Parse a Compose file from YAML ────────────
@@ -46,18 +47,18 @@ print(f"Name: {c.name}")
 
 # ── 3. Work with individual services ─────────────
 
-# Get a service as a dict
+# Get a service as a Pydantic Service model
 web = c.get_service("web")
-print(f"Web image: {web['image']}")
+print(f"Web image: {web.image}")
 
-# Modify and set it back
-web["image"] = "nginx:alpine"
-web["environment"]["BAZ"] = "qux"
+# Modify and set it back using the model
+web.image = "nginx:alpine"
+web.environment["BAZ"] = "qux"
 c.set_service("web", web)
 print(f"Updated web: {c.get_service('web')}")
 
-# Add a new service
-c.set_service("redis", {"image": "redis:7", "ports": ["6379:6379"]})
+# Add a new service using a Service model
+c.set_service("redis", Service(image="redis:7", ports=["6379:6379"]))
 print(f"After adding redis: {c.service_names()}")
 
 # Remove a service
@@ -81,8 +82,15 @@ json_out = c.to_json()
 d = c.to_dict()
 print(f"Dict keys: {list(d.keys())}")
 
-# Parse from dict
-c2 = PyCompose.from_dict({"services": {"api": {"image": "fastapi:latest"}}})
+# To a validated ComposeSpecification Pydantic model
+spec = c.to_spec()
+print(f"Spec services: {list(spec.services.keys())}")
+
+# Parse from a ComposeSpecification model
+spec = ComposeSpecification(
+    services={"api": Service(image="fastapi:latest")}
+)
+c2 = PyCompose.from_dict(spec)
 
 # Parse from JSON
 c3 = PyCompose.from_json('{"services": {"worker": {"image": "celery:latest"}}}')
@@ -118,7 +126,7 @@ services:
 opts = PyOptions(apply_merge=True)
 c4 = opts.from_yaml(YAML_WITH_MERGE)
 svc = c4.get_service("app")
-app_env = svc["environment"]
+app_env = svc.environment
 print(f"Merged environment: {app_env}")
 
 

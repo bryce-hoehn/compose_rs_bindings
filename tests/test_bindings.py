@@ -1,5 +1,13 @@
 import pytest
 from compose_spec import PyCompose, PyOptions, parse_duration, format_duration
+from compose_spec.models import (
+    ComposeSpecification,
+    Config,
+    Network,
+    Secret,
+    Service,
+    Volume,
+)
 
 
 BASIC_YAML = """
@@ -38,7 +46,10 @@ class TestConstructors:
         assert c.service_names() == ["x"]
 
     def test_from_dict(self):
-        c = PyCompose.from_dict({"services": {"x": {"image": "alpine"}}})
+        spec = ComposeSpecification(
+            services={"x": Service(image="alpine")}
+        )
+        c = PyCompose.from_dict(spec)
         assert c.service_names() == ["x"]
 
     def test_from_yaml_invalid(self):
@@ -51,7 +62,11 @@ class TestConstructors:
 
     def test_from_dict_invalid(self):
         with pytest.raises(ValueError):
-            PyCompose.from_dict({"services": {"x": {"depends_on": [12345]}}})
+            PyCompose.from_dict(
+                ComposeSpecification(
+                    services={"x": Service(depends_on=[12345])}  # type: ignore[arg-type]
+                )
+            )
 
 
 class TestSerialization:
@@ -90,7 +105,8 @@ class TestSerialization:
     def test_roundtrip_dict(self):
         original = PyCompose.from_yaml(BASIC_YAML)
         d = original.to_dict()
-        restored = PyCompose.from_dict(d)
+        spec = ComposeSpecification.model_validate(d)
+        restored = PyCompose.from_dict(spec)
         assert original == restored
 
 
@@ -105,11 +121,13 @@ class TestFieldGetters:
         services = compose.services
         assert isinstance(services, dict)
         assert set(services.keys()) == {"web", "db"}
+        assert all(isinstance(s, Service) for s in services.values())
 
     def test_networks(self, compose):
         networks = compose.networks
         assert isinstance(networks, dict)
         assert "default" in networks
+        assert isinstance(networks["default"], Network)
 
     def test_volumes(self, compose):
         volumes = compose.volumes
@@ -144,11 +162,11 @@ class TestFieldSetters:
         assert compose.version == "3.8"
 
     def test_set_services(self, compose):
-        compose.services = {"x": {"image": "alpine"}}
+        compose.services = {"x": Service(image="alpine")}
         assert compose.service_names() == ["x"]
 
     def test_set_networks(self, compose):
-        compose.networks = {"frontend": {"driver": "bridge"}}
+        compose.networks = {"frontend": Network(driver="bridge")}
         assert "frontend" in compose.networks
 
     def test_set_volumes(self, compose):
@@ -200,24 +218,26 @@ class TestServiceConvenience:
     def test_get_service(self, compose):
         web = compose.get_service("web")
         assert web is not None
-        assert web["image"] == "nginx:latest"
+        assert isinstance(web, Service)
+        assert web.image == "nginx:latest"
 
     def test_get_service_missing(self, compose):
         assert compose.get_service("missing") is None
 
     def test_set_service_new(self, compose):
-        compose.set_service("redis", {"image": "redis:7"})
+        compose.set_service("redis", Service(image="redis:7"))
         assert "redis" in compose
-        assert compose.get_service("redis")["image"] == "redis:7"
+        assert compose.get_service("redis").image == "redis:7"
 
     def test_set_service_replace(self, compose):
-        compose.set_service("web", {"image": "nginx:alpine"})
-        assert compose.get_service("web")["image"] == "nginx:alpine"
+        compose.set_service("web", Service(image="nginx:alpine"))
+        assert compose.get_service("web").image == "nginx:alpine"
 
     def test_remove_service(self, compose):
         removed = compose.remove_service("db")
         assert removed is not None
-        assert removed["image"] == "postgres:15"
+        assert isinstance(removed, Service)
+        assert removed.image == "postgres:15"
         assert "db" not in compose
         assert len(compose) == 1
 
@@ -281,7 +301,7 @@ services:
 """
         opts = PyOptions(apply_merge=True)
         c = opts.from_yaml(yaml)
-        app_env = c.get_service("app")["environment"]
+        app_env = c.get_service("app").environment
         assert app_env["LOG_LEVEL"] == "info"
         assert app_env["DEBUG"] == "true"
 
@@ -299,6 +319,23 @@ services:
         opts = PyOptions(apply_merge=False)
         with pytest.raises(ValueError):
             opts.from_yaml(yaml)
+
+
+class TestToSpec:
+    def test_to_spec_returns_compose_specification(self, compose):
+        spec = compose.to_spec()
+        assert isinstance(spec, ComposeSpecification)
+
+    def test_to_spec_roundtrip(self):
+        spec = ComposeSpecification(services={"web": Service(image="nginx:latest")})
+        result = PyCompose.from_dict(spec).to_spec()
+        assert "web" in result.services
+        assert result.services["web"].image == "nginx:latest"
+
+    def test_to_spec_from_yaml(self, compose):
+        spec = compose.to_spec()
+        assert isinstance(spec, ComposeSpecification)
+        assert spec.services is not None
 
 
 class TestParseDuration:

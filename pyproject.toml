@@ -34,3 +34,4 @@ use-double-quotes = true
 disable-future-imports = true
 disable-timestamp = true
 naming-strategy = "parent-prefixed"
+use-type-alias = true

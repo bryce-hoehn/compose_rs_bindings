@@ -2,9 +2,10 @@
 #   filename:  schema.json
 
 from enum import Enum
-from typing import Any
+from typing import Annotated, Any
 
-from pydantic import BaseModel, ConfigDict, Field, RootModel, constr
+from pydantic import BaseModel, ConfigDict, Field, constr
+from typing_extensions import TypeAliasType
 
 
 class ServiceCgroup(str, Enum):
@@ -12,14 +13,18 @@ class ServiceCgroup(str, Enum):
     private = "private"
 
 
-class ServiceCpuCount(RootModel[int]):
-    root: int = Field(..., description="Number of usable CPUs.", ge=0)
+ServiceCpuCount = TypeAliasType(
+    "ServiceCpuCount",
+    Annotated[int, Field(..., description="Number of usable CPUs.", ge=0)],
+)
 
 
-class ServiceCpuPercent(RootModel[int]):
-    root: int = Field(
-        ..., description="Percentage of CPU resources to use.", ge=0, le=100
-    )
+ServiceCpuPercent = TypeAliasType(
+    "ServiceCpuPercent",
+    Annotated[
+        int, Field(..., description="Percentage of CPU resources to use.", ge=0, le=100)
+    ],
+)
 
 
 class ServiceCredentialSpec(BaseModel):
@@ -121,13 +126,18 @@ class ServiceModels(BaseModel):
     )
 
 
-class ServiceOomScoreAdj(RootModel[int]):
-    root: int = Field(
-        ...,
-        description="Tune host's OOM preferences for the container (accepts -1000 to 1000).",
-        ge=-1000,
-        le=1000,
-    )
+ServiceOomScoreAdj = TypeAliasType(
+    "ServiceOomScoreAdj",
+    Annotated[
+        int,
+        Field(
+            ...,
+            description="Tune host's OOM preferences for the container (accepts -1000 to 1000).",
+            ge=-1000,
+            le=1000,
+        ),
+    ],
+)
 
 
 class ServicePorts(BaseModel):
@@ -193,8 +203,10 @@ class ServiceVolumesBind(BaseModel):
     )
 
 
-class ServiceVolumesTmpfsSize(RootModel[int]):
-    root: int = Field(..., description="Size of the tmpfs mount in bytes.", ge=0)
+ServiceVolumesTmpfsSize = TypeAliasType(
+    "ServiceVolumesTmpfsSize",
+    Annotated[int, Field(..., description="Size of the tmpfs mount in bytes.", ge=0)],
+)
 
 
 class ServiceVolumesTmpfs(BaseModel):
@@ -410,11 +422,16 @@ class GenericResourcesGenericResource(BaseModel):
     ) = Field(None, description="Specification for discrete (countable) resources.")
 
 
-class GenericResources(RootModel[list[GenericResourcesGenericResource]]):
-    root: list[GenericResourcesGenericResource] = Field(
-        ...,
-        description="User-defined resources for services, allowing services to reserve specialized hardware resources.",
-    )
+GenericResources = TypeAliasType(
+    "GenericResources",
+    Annotated[
+        list[GenericResourcesGenericResource],
+        Field(
+            ...,
+            description="User-defined resources for services, allowing services to reserve specialized hardware resources.",
+        ),
+    ],
+)
 
 
 class GpusGpus(str, Enum):
@@ -508,11 +525,16 @@ class Model(BaseModel):
     )
 
 
-class Command(RootModel[str | list[str] | None]):
-    root: str | list[str] | None = Field(
-        ...,
-        description="Command to run in the container, which can be specified as a string (shell form) or array (exec form).",
-    )
+Command = TypeAliasType(
+    "Command",
+    Annotated[
+        str | list[str] | None,
+        Field(
+            ...,
+            description="Command to run in the container, which can be specified as a string (shell form) or array (exec form).",
+        ),
+    ],
+)
 
 
 class EnvFileEnvFile(BaseModel):
@@ -530,56 +552,63 @@ class EnvFileEnvFile(BaseModel):
     )
 
 
-class EnvFile(RootModel[str | list[str | EnvFileEnvFile]]):
-    root: str | list[str | EnvFileEnvFile]
+EnvFile = TypeAliasType("EnvFile", str | list[str | EnvFileEnvFile])
 
 
-class LabelFile(RootModel[str | list[str]]):
-    root: str | list[str]
+LabelFile = TypeAliasType("LabelFile", str | list[str])
 
 
-class ListOfStrings(RootModel[set[str]]):
-    root: set[str] = Field(..., description="A list of unique string values.")
+ListOfStrings = TypeAliasType(
+    "ListOfStrings",
+    Annotated[set[str], Field(..., description="A list of unique string values.")],
+)
 
 
-class ListOrDictListOrDict(RootModel[set[str]]):
-    root: set[str] = Field(..., description="A list of unique string values.")
+ListOrDictListOrDict = TypeAliasType(
+    "ListOrDictListOrDict",
+    Annotated[set[str], Field(..., description="A list of unique string values.")],
+)
 
 
-class ListOrDict(
-    RootModel[
-        dict[constr(pattern=r".+"), str | float | bool | None] | ListOrDictListOrDict
-    ]
-):
-    root: (
-        dict[constr(pattern=r".+"), str | float | bool | None] | ListOrDictListOrDict
-    ) = Field(
-        ...,
-        description="Either a dictionary mapping keys to values, or a list of strings.",
-    )
+ListOrDict = TypeAliasType(
+    "ListOrDict",
+    Annotated[
+        dict[constr(pattern=r".+"), str | float | bool | None] | ListOrDictListOrDict,
+        Field(
+            ...,
+            description="Either a dictionary mapping keys to values, or a list of strings.",
+        ),
+    ],
+)
 
 
-class ExtraHostsExtraHosts(RootModel[list[str]]):
-    root: list[str] = Field(..., description="List of IP addresses for the hostname.")
+ExtraHostsExtraHosts = TypeAliasType(
+    "ExtraHostsExtraHosts",
+    Annotated[
+        list[str], Field(..., description="List of IP addresses for the hostname.")
+    ],
+)
 
 
-class ExtraHostsExtraHosts1(RootModel[set[str]]):
-    root: set[str] = Field(
-        ..., description="List of host:IP mappings in the format 'hostname:IP'."
-    )
+ExtraHostsExtraHosts1 = TypeAliasType(
+    "ExtraHostsExtraHosts1",
+    Annotated[
+        set[str],
+        Field(..., description="List of host:IP mappings in the format 'hostname:IP'."),
+    ],
+)
 
 
-class ExtraHosts(
-    RootModel[
-        dict[constr(pattern=r".+"), str | ExtraHostsExtraHosts] | ExtraHostsExtraHosts1
-    ]
-):
-    root: (
-        dict[constr(pattern=r".+"), str | ExtraHostsExtraHosts] | ExtraHostsExtraHosts1
-    ) = Field(
-        ...,
-        description="Additional hostnames to be defined in the container's /etc/hosts file.",
-    )
+ExtraHosts = TypeAliasType(
+    "ExtraHosts",
+    Annotated[
+        dict[constr(pattern=r".+"), str | ExtraHostsExtraHosts] | ExtraHostsExtraHosts1,
+        Field(
+            ...,
+            description="Additional hostnames to be defined in the container's /etc/hosts file.",
+        ),
+    ],
+)
 
 
 class BlkioLimit(BaseModel):
@@ -626,13 +655,16 @@ class ServiceConfigOrSecretServiceConfigOrSecret(BaseModel):
     )
 
 
-class ServiceConfigOrSecret(
-    RootModel[list[str | ServiceConfigOrSecretServiceConfigOrSecret]]
-):
-    root: list[str | ServiceConfigOrSecretServiceConfigOrSecret] = Field(
-        ...,
-        description="Configuration for service configs or secrets, defining how they are mounted in the container.",
-    )
+ServiceConfigOrSecret = TypeAliasType(
+    "ServiceConfigOrSecret",
+    Annotated[
+        list[str | ServiceConfigOrSecretServiceConfigOrSecret],
+        Field(
+            ...,
+            description="Configuration for service configs or secrets, defining how they are mounted in the container.",
+        ),
+    ],
+)
 
 
 class UlimitsUlimits(BaseModel):
@@ -649,11 +681,16 @@ class UlimitsUlimits(BaseModel):
     )
 
 
-class Ulimits(RootModel[dict[constr(pattern=r"^[a-z]+$"), int | str | UlimitsUlimits]]):
-    root: dict[constr(pattern=r"^[a-z]+$"), int | str | UlimitsUlimits] = Field(
-        ...,
-        description="Container ulimit options, controlling resource limits for processes inside the container.",
-    )
+Ulimits = TypeAliasType(
+    "Ulimits",
+    Annotated[
+        dict[constr(pattern=r"^[a-z]+$"), int | str | UlimitsUlimits],
+        Field(
+            ...,
+            description="Container ulimit options, controlling resource limits for processes inside the container.",
+        ),
+    ],
+)
 
 
 class ServiceBuild(BaseModel):
@@ -877,11 +914,16 @@ class DevicesDevice(BaseModel):
     )
 
 
-class Devices(RootModel[list[DevicesDevice]]):
-    root: list[DevicesDevice] = Field(
-        ...,
-        description="Device reservations for containers, allowing services to access specific hardware devices.",
-    )
+Devices = TypeAliasType(
+    "Devices",
+    Annotated[
+        list[DevicesDevice],
+        Field(
+            ...,
+            description="Device reservations for containers, allowing services to access specific hardware devices.",
+        ),
+    ],
+)
 
 
 class GpusGpu(BaseModel):
@@ -902,8 +944,7 @@ class GpusGpu(BaseModel):
     )
 
 
-class Gpus(RootModel[GpusGpus | list[GpusGpu]]):
-    root: GpusGpus | list[GpusGpu]
+Gpus = TypeAliasType("Gpus", GpusGpus | list[GpusGpu])
 
 
 class Network(BaseModel):
@@ -1017,9 +1058,7 @@ class ServiceHook(BaseModel):
     model_config = ConfigDict(
         extra="ignore",
     )
-    command: Command | None = Field(
-        ..., description="Command to execute as part of the hook."
-    )
+    command: Command = Field(..., description="Command to execute as part of the hook.")
     user: str | None = Field(None, description="User to run the command as.")
     privileged: bool | str | None = Field(
         None, description="Whether to run the command with extended privileges."
@@ -1032,10 +1071,13 @@ class ServiceHook(BaseModel):
     )
 
 
-class StringOrList(RootModel[str | ListOfStrings]):
-    root: str | ListOfStrings = Field(
-        ..., description="Either a single string or a list of strings."
-    )
+StringOrList = TypeAliasType(
+    "StringOrList",
+    Annotated[
+        str | ListOfStrings,
+        Field(..., description="Either a single string or a list of strings."),
+    ],
+)
 
 
 class DevelopmentWatchItem(BaseModel):
@@ -1160,10 +1202,13 @@ class IncludeInclude(BaseModel):
     )
 
 
-class Include(RootModel[str | IncludeInclude]):
-    root: str | IncludeInclude = Field(
-        ..., description="Compose application or sub-projects to be included."
-    )
+Include = TypeAliasType(
+    "Include",
+    Annotated[
+        str | IncludeInclude,
+        Field(..., description="Compose application or sub-projects to be included."),
+    ],
+)
 
 
 class Service(BaseModel):
