@@ -4,5 +4,12 @@ from .compose_spec import (  # type: ignore[attr-defined, no-redef]  # pylint: d
     format_duration,
     parse_duration,
 )
+from .models import ComposeSpecification
 
-__all__ = ["PyCompose", "PyOptions", "format_duration", "parse_duration"]
+__all__ = [
+    "PyCompose",
+    "PyOptions",
+    "format_duration",
+    "parse_duration",
+    "ComposeSpecification",
+]

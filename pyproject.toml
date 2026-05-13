@@ -6,7 +6,7 @@ build-backend = "maturin"
 name = "compose-spec"
 description = "Python bindings for compose_spec — validated Docker Compose file parsing and serialization"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = {text = "MIT OR Apache-2.0"}
 classifiers = [
     "License :: OSI Approved :: MIT License",
@@ -17,3 +17,20 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dynamic = ["version"]
+dependencies = ["pydantic>=2.0"]
+
+[tool.datamodel-codegen]
+input = "schema.json"
+input-file-type = "jsonschema"
+output = "compose_spec/models.py"
+output-model-type = "pydantic_v2.BaseModel"
+extra-fields = "ignore"
+field-constraints = true
+snake-case-field = true
+target-python-version = "3.10"
+use-subclass-enum = true
+use-unique-items-as-set = true
+use-double-quotes = true
+disable-future-imports = true
+disable-timestamp = true
+naming-strategy = "parent-prefixed"
